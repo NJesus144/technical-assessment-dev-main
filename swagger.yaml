@@ -1,0 +1,501 @@
+openapi: 3.0.0
+info:
+  title: OZMap Challenge API
+  version: '1.0.0'
+  description: API for managing users and geographical regions
+
+servers:
+  - url: http://localhost:3003/api
+    description: Development server
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Address:
+      type: object
+      properties:
+        street:
+          type: string
+        number:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        zipCode:
+          type: string
+
+    UserCreate:
+      type: object
+      required:
+        - name
+        - email
+        - password
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        address:
+          $ref: '#/components/schemas/Address'
+        coordinates:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+          description: [longitude, latitude]
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        address:
+          $ref: '#/components/schemas/Address'
+        coordinates:
+          type: array
+          items:
+            type: number
+          minItems: 2
+          maxItems: 2
+        regions:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Region:
+      type: object
+      required:
+        - name
+        - polygon
+        - user
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+          minLength: 3
+        polygon:
+          type: object
+          required:
+            - type
+            - coordinates
+          properties:
+            type:
+              type: string
+              enum: [Polygon]
+            coordinates:
+              type: array
+              items:
+                type: array
+                items:
+                  type: array
+                  items:
+                    type: number
+              description: GeoJSON Polygon coordinates array with at least 4 points, where first and last points must be identical
+        user:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+        status:
+          type: integer
+
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreate'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+                  token:
+                    type: string
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      summary: Authenticate user
+      tags:
+        - Auth
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Authentication failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+    
+    patch:
+      summary: Update user
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                address:
+                  $ref: '#/components/schemas/Address'
+                coordinates:
+                  type: array
+                  items:
+                    type: number
+                  minItems: 2
+                  maxItems: 2
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: User not found
+
+    delete:
+      summary: Delete user
+      tags:
+        - Users
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User deleted
+        '404':
+          description: User not found
+
+  /regions:
+    post:
+      summary: Create a new region
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Region'
+      responses:
+        '201':
+          description: Region created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+        '400':
+          description: Invalid input or overlapping regions
+
+    get:
+      summary: Get all regions
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of regions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+
+  /regions/{id}:
+    get:
+      summary: Get region by ID
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Region found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+        '404':
+          description: Region not found
+
+    patch:
+      summary: Update region
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 3
+                polygon:
+                  type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [Polygon]
+                    coordinates:
+                      type: array
+                      items:
+                        type: array
+                        items:
+                          type: array
+                          items:
+                            type: number
+      responses:
+        '200':
+          description: Region updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Region'
+        '400':
+          description: Invalid input or overlapping regions
+        '404':
+          description: Region not found
+
+    delete:
+      summary: Delete region
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Region deleted
+        '404':
+          description: Region not found
+
+  /regions/point/contains:
+    get:
+      summary: Find regions containing a point
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+      responses:
+        '200':
+          description: List of regions containing the point
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '400':
+          description: Invalid coordinates
+
+  /regions/point/near:
+    get:
+      summary: Find regions near a point
+      tags:
+        - Regions
+      security:
+        - BearerAuth: []
+      parameters:
+        - in: query
+          name: longitude
+          required: true
+          schema:
+            type: number
+            minimum: -180
+            maximum: 180
+        - in: query
+          name: latitude
+          required: true
+          schema:
+            type: number
+            minimum: -90
+            maximum: 90
+        - in: query
+          name: maxDistance
+          required: true
+          schema:
+            type: number
+            minimum: 0
+            description: Maximum distance in meters
+        - in: query
+          name: userId
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of regions near the point
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Region'
+        '400':
+          description: Invalid coordinates or distance
