@@ -6,8 +6,8 @@ export class AuthService {
   private readonly jwtSecret: string
 
   constructor() {
-    if (!process.env.JWT_SECRET || !process.env.JWT_EXPIRES_IN) {
-      throw new Error('JWT_SECRET and JWT_EXPIRES_IN must be provided')
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET must be provided')
     }
 
     this.jwtSecret = process.env.JWT_SECRET
