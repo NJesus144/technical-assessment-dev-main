@@ -4,3 +4,6 @@ node_modules/
 .env.local
 dist
 build
+error.log
+logs/
+*.log
