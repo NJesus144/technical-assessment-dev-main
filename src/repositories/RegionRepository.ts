@@ -13,12 +13,9 @@ class RegionRepository {
     return await RegionModel.find().populate('user', 'name email')
   }
 
-  async findById(id: string) {
-    const region = await RegionModel.findById(id).populate('user', 'name email')
-    if (!region) {
-      throw AppError.NotFound('region', id)
-    }
-    return region
+  async findByUserId(userId: string) {
+    const regions = await RegionModel.find({ user: userId }).populate('user', 'name email')
+    return regions
   }
 
   async findOverlapping(polygon: Polygon, excludeId?: string) {

@@ -27,13 +27,13 @@ export class RegionController {
     }
   }
 
-  async findById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async findByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      logger.info('Fetching region by id', { regionId: req.params.id })
-      const region = await this.regionService.findById(req.params.id)
-      res.status(200).json({ status: 'success', region })
+      logger.info('Fetching regions by user id', { userId: req.params.userId })
+      const regions = await this.regionService.findByUserId(req.params.userId)
+      res.status(200).json(regions)
     } catch (error) {
-      logger.error('Error fetching region', { error, regionId: req.params.id })
+      logger.error('Error fetching user regions', { error, userId: req.params.userId })
       next(error)
     }
   }
@@ -41,6 +41,7 @@ export class RegionController {
   async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       logger.info('Updating region', { regionId: req.params.id, regionData: req.body })
+      console.log(req.params.id, req.body)
       const region = await this.regionService.update(req.params.id, req.body)
       res.status(200).json({ status: 'success', region })
     } catch (error) {

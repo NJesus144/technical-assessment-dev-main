@@ -15,7 +15,7 @@ const regionController = new RegionController(regionService)
 router.post('/regions', (req, res, next) => regionController.create(req, res, next))
 
 router.get('/regions', (req, res, next) => regionController.findAll(req, res, next))
-router.get('/regions/:id', (req, res, next) => regionController.findById(req, res, next))
+router.get('/regions/user/:userId', (req, res, next) => regionController.findByUserId(req, res, next))
 router.patch('/regions/:id', (req, res, next) => regionController.update(req, res, next))
 router.delete('/regions/:id', (req, res, next) => regionController.delete(req, res, next))
 

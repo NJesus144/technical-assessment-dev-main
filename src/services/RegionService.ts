@@ -16,11 +16,11 @@ export class RegionService {
     return await this.regionRepository.findAll()
   }
 
-  async findById(id: string) {
-    if (!id) {
-      throw AppError.OperationFailed('region', 'Region ID is required')
+  async findByUserId(userId: string) {
+    if (!userId) {
+      throw AppError.OperationFailed('region', 'User ID is required')
     }
-    return await this.regionRepository.findById(id)
+    return await this.regionRepository.findByUserId(userId)
   }
 
   async update(id: string, data: RegionUpdateDTO) {
