@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 
 export const connectDB = async (uri?: string) => {
   try {
-    const MONGO_URI = uri || 'mongodb://root:example@localhost:27017/oz-tech-test?authSource=admin'
+    const MONGO_URI =  process.env.MONGODB_URL || uri
     await mongoose.connect(MONGO_URI)
     console.log('MongoDB connected successfully')
   } catch (error) {
