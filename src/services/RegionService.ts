@@ -16,6 +16,15 @@ export class RegionService {
     return await this.regionRepository.findAll()
   }
 
+  
+  async findById(id: string) {
+    if (!id || id.trim() === '') {
+      throw new Error('Region ID is required')
+    }
+
+    return this.regionRepository.findById(id)
+  }
+
   async findByUserId(userId: string) {
     if (!userId) {
       throw AppError.OperationFailed('region', 'User ID is required')

@@ -49,7 +49,7 @@ export class UserRepository {
   }
 
   async deleteRegionsByUserId(id: string): Promise<void> {
-    await RegionModel.deleteMany({ userId: id })
-    logger.info('Regions deleted from database', { userId: id })
+    await RegionModel.deleteMany({ user: id })
+    logger.info('Regions deleted from database', { user: id })
   }
 }

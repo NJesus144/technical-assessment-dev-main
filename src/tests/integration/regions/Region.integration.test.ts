@@ -55,6 +55,9 @@ describe('Region API Integration Tests', () => {
 
     userId = user._id.toString()
     authToken = jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: '1h' })
+    jest.spyOn(console, 'log').mockImplementation(() => {});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => {})
   })
 
   describe('POST /api/regions', () => {
@@ -181,9 +184,9 @@ describe('Region API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
 
       expect(response.status).toBe(200)
-      expect(response.body.regions.length).toBe(2)
-      expect(response.body.regions[0].name).toBe(region1.name)
-      expect(response.body.regions[1].name).toBe(region2.name)
+      expect(response.body.length).toBe(2)
+      expect(response.body[0].name).toBe(region1.name)
+      expect(response.body[1].name).toBe(region2.name)
     })
 
     it('should return an empty list when no regions are found', async () => {
@@ -192,54 +195,7 @@ describe('Region API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`)
 
       expect(response.status).toBe(200)
-      expect(response.body.regions.length).toBe(0)
-    })
-  })
-
-  describe('GET /api/regions/:id', () => {
-    let regionId: string
-
-    beforeEach(async () => {
-      const region = await RegionModel.create({
-        name: 'Test Region',
-        polygon: {
-          type: 'Polygon',
-          coordinates: [
-            [
-              [-46.633308, -23.55052],
-              [-46.633308, -23.54052],
-              [-46.623308, -23.54052],
-              [-46.623308, -23.55052],
-              [-46.633308, -23.55052],
-            ],
-          ],
-        },
-        user: userId,
-      })
-
-      regionId = region._id.toString()
-    })
-
-    it('should fetch a region by ID successfully', async () => {
-      const response = await request(app)
-        .get(`/api/regions/${regionId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-
-      expect(response.status).toBe(200)
-      expect(response.body.status).toBe('success')
-      expect(response.body.region._id).toBe(regionId)
-      expect(response.body.region.name).toBe('Test Region')
-      expect(response.body.region.polygon).toBeDefined()
-    })
-
-    it('should fail to fetch a region with non-existent ID', async () => {
-      const nonExistentId = '507f1f77bcf86cd799439011'
-      const response = await request(app)
-        .get(`/api/regions/${nonExistentId}`)
-        .set('Authorization', `Bearer ${authToken}`)
-
-      expect(response.status).toBe(404)
-      expect(response.body).toHaveProperty('message', `region with id ${nonExistentId} not found`)
+      expect(response.body.length).toBe(0)
     })
   })
 

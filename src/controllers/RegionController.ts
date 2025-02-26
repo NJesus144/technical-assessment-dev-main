@@ -27,6 +27,17 @@ export class RegionController {
     }
   }
 
+  async findById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      logger.info('Fetching region by ID', { regionId: req.params.id })
+      const region = await this.regionService.findById(req.params.id)
+      res.status(200).json(region)
+    } catch (error) {
+      logger.error('Error fetching region by ID', { error, regionId: req.params.id })
+      next(error)
+    }
+  }
+
   async findByUserId(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       logger.info('Fetching regions by user id', { userId: req.params.userId })
