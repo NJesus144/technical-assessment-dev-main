@@ -2,6 +2,7 @@ import logger from '../config/logger'
 import { AppError } from '../errors/appError'
 import { IUser, IUserCreate } from '../interfaces/user.interface'
 import { UserRepository } from '../repositories/UserRepository'
+import bcrypt from 'bcrypt'
 
 export class UserService {
   constructor(private userRepository: UserRepository) {}
@@ -47,8 +48,13 @@ export class UserService {
       logger.warn('Attempted to update non-existent user', { userId: id })
       throw AppError.NotFound('user', id)
     }
+    const processedData = await this.processUpdateData(data)
+    return this.userRepository.update(id, processedData)
+  }
 
-    return this.userRepository.update(id, this.processUpdateData(data))
+  private async hashPassword(password: string): Promise<string> {
+    const saltRounds = 10
+    return await bcrypt.hash(password, saltRounds)
   }
 
   async delete(id: string): Promise<void> {
@@ -74,7 +80,7 @@ export class UserService {
     }
   }
 
-  private processUpdateData(data: IUserCreate): IUserCreate {
+  private async processUpdateData(data: IUserCreate): Promise<IUserCreate> {
     const updateData = { ...data }
 
     if (updateData.address) {
@@ -83,6 +89,10 @@ export class UserService {
 
     if (updateData.coordinates) {
       updateData.address = undefined
+    }
+
+    if (updateData.password) {
+      updateData.password = await this.hashPassword(updateData.password)
     }
 
     return updateData
